@@ -34,7 +34,7 @@ class TransactionService(
             .launchSaga("INITIATE TRANSFER BETWEEN ACCOUNTS", "initiate transfer between accounts")
             .sagaContext
 
-        return transactionEsService.create {
+        return transactionEsService.create(sagaContext) {
             it.initiateTransferTransaction(
                 sourceAccountId = srcBankAccount.accountId,
                 sourceBankAccountId = srcBankAccount.bankAccountId,

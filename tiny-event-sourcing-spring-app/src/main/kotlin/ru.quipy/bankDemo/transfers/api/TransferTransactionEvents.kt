@@ -19,6 +19,7 @@ const val TRANSFER_DEPOSIT_SUCCEEDED = "TRANSFER_DEPOSIT_SUCCEEDED"
 const val TRANSFER_DEPOSIT_FAILED = "TRANSFER_DEPOSIT_FAILED"
 
 const val TRANSFER_TRANSACTION_CREATED = "TRANSFER_TRANSACTION_CREATED"
+const val TRANSFER_PARTLY_FAILED = "TRANSFER_PARTLY_FAILED"
 const val TRANSFER_FAILED = "TRANSFER_FAILED"
 const val TRANSFER_SUCCEEDED = "TRANSFER_SUCCEEDED"
 
@@ -50,8 +51,6 @@ data class TransactionWithdrawalSucceededEvent(
     val transferId: UUID,
     val sourceAccountId: UUID,
     val sourceBankAccountId: UUID,
-    val destinationAccountId: UUID,
-    val destinationBankAccountId: UUID,
 ) : Event<TransferTransactionAggregate>(
     name = TRANSFER_WITHDRAWAL_SUCCEEDED,
 )
@@ -59,8 +58,6 @@ data class TransactionWithdrawalSucceededEvent(
 @DomainEvent(name = TRANSFER_DEPOSIT_SUCCEEDED)
 data class TransactionDepositSucceededEvent(
     val transferId: UUID,
-    val sourceAccountId: UUID,
-    val sourceBankAccountId: UUID,
     val destinationAccountId: UUID,
     val destinationBankAccountId: UUID,
 ) : Event<TransferTransactionAggregate>(
@@ -76,6 +73,15 @@ data class TransactionFailedEvent(
     val destinationBankAccountId: UUID,
 ) : Event<TransferTransactionAggregate>(
     name = TRANSFER_FAILED,
+)
+
+@DomainEvent(name = TRANSFER_PARTLY_FAILED)
+data class TransactionPartlyFailedEvent(
+    val transferId: UUID,
+    val accountId: UUID,
+    val bankAccountId: UUID,
+) : Event<TransferTransactionAggregate>(
+    name = TRANSFER_PARTLY_FAILED,
 )
 
 @DomainEvent(name = TRANSFER_WITHDRAWAL_FAILED)

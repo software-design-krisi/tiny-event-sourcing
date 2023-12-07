@@ -40,32 +40,48 @@ class TransferTransaction : AggregateState<UUID, TransferTransactionAggregate> {
         )
     }
 
-    fun transactionConfirmed(
-        id: UUID
-    ) : TransactionSucceededEvent {
+//    fun transactionConfirmed(
+//        id: UUID
+//    ) : TransactionSucceededEvent {
+//        return TransactionSucceededEvent(
+//            id,
+//            this.sourceAccountId,
+//            this.sourceBankAccountId,
+//            this.destinationAccountId,
+//            this.destinationBankAccountId,
+//        )
+//    }
+//
+//    fun transactionFailed(
+//        id: UUID
+//    ) : TransactionFailedEvent {
+//        return TransactionFailedEvent(
+//            id,
+//            this.sourceAccountId,
+//            this.sourceBankAccountId,
+//            this.destinationAccountId,
+//            this.destinationBankAccountId,
+//        )
+//    }
+
+    fun transactionWithdrawalSucceeded(id: UUID): Event<TransferTransactionAggregate> {
+        if (this.transactionState == FAILED)
+            return TransactionDepositFailedEvent(
+                id,
+                this.sourceAccountId,
+                this.sourceBankAccountId,
+                this.destinationAccountId,
+                this.destinationBankAccountId
+            )
+
+        if (this.transactionState == CREATED)
+            return TransactionWithdrawalSucceededEvent(
+                id,
+                this.sourceAccountId,
+                this.sourceBankAccountId,
+            )
+
         return TransactionSucceededEvent(
-            id,
-            this.sourceAccountId,
-            this.sourceBankAccountId,
-            this.destinationAccountId,
-            this.destinationBankAccountId,
-        )
-    }
-
-    fun transactionCanceled(
-        id: UUID
-    ) : TransactionFailedEvent {
-        return TransactionFailedEvent(
-            id,
-            this.sourceAccountId,
-            this.sourceBankAccountId,
-            this.destinationAccountId,
-            this.destinationBankAccountId,
-        )
-    }
-
-    fun transactionWithdrawalConfirmed(id: UUID): TransactionWithdrawalSucceededEvent {
-        return TransactionWithdrawalSucceededEvent(
             id,
             this.sourceAccountId,
             this.sourceBankAccountId,
@@ -74,7 +90,23 @@ class TransferTransaction : AggregateState<UUID, TransferTransactionAggregate> {
         )
     }
 
-    fun transactionWithdrawalCanceled(id: UUID): TransactionWithdrawalFailedEvent {
+    fun transactionWithdrawalFailed(id: UUID): Event<TransferTransactionAggregate> {
+        if (this.transactionState == FAILED)
+            return TransactionFailedEvent(
+                id,
+                this.sourceAccountId,
+                this.sourceBankAccountId,
+                this.destinationAccountId,
+                this.destinationBankAccountId
+            )
+
+        if (this.transactionState == CREATED)
+            return TransactionPartlyFailedEvent(
+                id,
+                this.sourceAccountId,
+                this.sourceBankAccountId,
+            )
+
         return TransactionWithdrawalFailedEvent(
             id,
             this.sourceAccountId,
@@ -84,8 +116,24 @@ class TransferTransaction : AggregateState<UUID, TransferTransactionAggregate> {
         )
     }
 
-    fun transactionDepositConfirmed(id: UUID): TransactionDepositSucceededEvent {
-        return TransactionDepositSucceededEvent(
+    fun transactionDepositSucceeded(id: UUID): Event<TransferTransactionAggregate> {
+        if (this.transactionState == FAILED)
+            return TransactionWithdrawalFailedEvent(
+                id,
+                this.sourceAccountId,
+                this.sourceBankAccountId,
+                this.destinationAccountId,
+                this.destinationBankAccountId
+            )
+
+        if (this.transactionState == CREATED)
+            return TransactionDepositSucceededEvent(
+                id,
+                this.destinationAccountId,
+                this.destinationBankAccountId,
+            )
+
+        return TransactionSucceededEvent(
             id,
             this.sourceAccountId,
             this.sourceBankAccountId,
@@ -94,7 +142,23 @@ class TransferTransaction : AggregateState<UUID, TransferTransactionAggregate> {
         )
     }
 
-    fun transactionDepositFailed(id: UUID): TransactionDepositFailedEvent {
+    fun transactionDepositFailed(id: UUID): Event<TransferTransactionAggregate> {
+        if (this.transactionState == FAILED)
+            return TransactionFailedEvent(
+                id,
+                this.sourceAccountId,
+                this.sourceBankAccountId,
+                this.destinationAccountId,
+                this.destinationBankAccountId
+            )
+
+        if (this.transactionState == CREATED)
+            return TransactionPartlyFailedEvent(
+                id,
+                this.destinationAccountId,
+                this.destinationBankAccountId,
+            )
+
         return TransactionDepositFailedEvent(
             id,
             this.sourceAccountId,
@@ -125,7 +189,12 @@ class TransferTransaction : AggregateState<UUID, TransferTransactionAggregate> {
     }
 
     @StateTransitionFunc
-    fun withdrawalSucceeded(event: TransactionSucceededEvent) {
+    fun partlyFailed(event: TransactionPartlyFailedEvent) {
+        transactionState = FAILED
+    }
+
+    @StateTransitionFunc
+    fun withdrawalSucceeded(event: TransactionWithdrawalSucceededEvent) {
         transactionState = HALF_CONFIRMED
     }
 
@@ -135,19 +204,18 @@ class TransferTransaction : AggregateState<UUID, TransferTransactionAggregate> {
     }
 
     @StateTransitionFunc
-    fun depositSucceeded(event: TransactionSucceededEvent) {
-        transactionState = CONFIRMED
+    fun depositSucceeded(event: TransactionDepositSucceededEvent) {
+        transactionState = SUCCEEDED
     }
 
     @StateTransitionFunc
-    fun depositFailed(event: TransactionSucceededEvent) {
+    fun depositFailed(event: TransactionDepositFailedEvent) {
         transactionState = FAILED
     }
 
     enum class TransactionState {
         CREATED,
         HALF_CONFIRMED,
-        CONFIRMED,
         SUCCEEDED,
         FAILED
     }

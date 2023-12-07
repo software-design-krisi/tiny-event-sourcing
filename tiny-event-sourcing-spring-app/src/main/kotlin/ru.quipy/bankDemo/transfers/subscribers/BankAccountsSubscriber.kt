@@ -25,18 +25,56 @@ class BankAccountsSubscriber(
     @PostConstruct
     fun init() {
         subscriptionsManager.createSubscriber(AccountAggregate::class, "transactions::bank-accounts-subscriber") {
-            `when`(TransferTransactionAcceptedEvent::class){event ->
+            `when`(TransferWithdrawalSucceededEvent::class){event ->
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .launchSaga("PROCESS PARTICIPANT ACCEPT", "process participant accept")
-                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "initiate transfer between accounts")
-                    .performSagaStep("CREATING TRANSACTION FROM AND TO", "creating transaction from and to")
+                    .performSagaStep("WITHDRAWAL_SUCCEEDED", "withdrawal for transaction is succeeded")
                     .sagaContext
+
                 transactionEsService.update(
                     aggregateId = event.transactionId,
                     sagaContext = sagaContext
                 ) {
-                    it.transactionWithdrawalConfirmed(event.bankAccountId)
+                    it.transactionWithdrawalSucceeded(event.bankAccountId)
+                }
+            }
+            `when`(TransferWithdrawalFailedEvent::class){event ->
+                val sagaContext = sagaManager
+                    .withContextGiven(event.sagaContext)
+                    .performSagaStep("WITHDRAWAL_FAILED", "withdrawal for transaction is failed")
+                    .sagaContext
+
+                transactionEsService.update(
+                    aggregateId = event.transactionId,
+                    sagaContext = sagaContext
+                ) {
+                    it.transactionWithdrawalFailed(event.bankAccountId)
+                }
+            }
+            `when`(TransferDepositSuccededEvent::class){event ->
+                val sagaContext = sagaManager
+                    .withContextGiven(event.sagaContext)
+                    .performSagaStep("DEPOSIT_SUCCEEDED", "deposit for transaction is succeeded")
+                    .sagaContext
+
+                transactionEsService.update(
+                    aggregateId = event.transactionId,
+                    sagaContext = sagaContext
+                ) {
+                    it.transactionDepositSucceeded(event.bankAccountId)
+                }
+            }
+            `when`(TransferDepositFailedEvent::class){event ->
+                val sagaContext = sagaManager
+                    .withContextGiven(event.sagaContext)
+                    .performSagaStep("DEPOSIT_FAILED", "deposit for transaction is failed")
+                    .sagaContext
+
+                transactionEsService.update(
+                    aggregateId = event.transactionId,
+                    sagaContext = sagaContext
+                ) {
+                    it.transactionDepositFailed(event.bankAccountId)
                 }
             }
         }

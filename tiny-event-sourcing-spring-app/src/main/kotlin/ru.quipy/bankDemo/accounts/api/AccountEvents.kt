@@ -11,8 +11,10 @@ const val BANK_ACCOUNT_DEPOSIT = "BANK_ACCOUNT_DEPOSIT_EVENT"
 const val BANK_ACCOUNT_WITHDRAWAL = "BANK_ACCOUNT_WITHDRAWAL_EVENT"
 const val INTERNAL_ACCOUNT_TRANSFER = "INTERNAL_ACCOUNT_TRANSFER_EVENT"
 
-const val TRANSFER_TRANSACTION_ACCEPTED = "TRANSFER_TRANSACTION_ACCEPTED"
-const val TRANSFER_TRANSACTION_DECLINED = "TRANSFER_TRANSACTION_DECLINED"
+const val TRANSFER_WITHDRAWAL_SUCCEEDED = "TRANSFER_WITHDRAWAL_SUCCEEDED"
+const val TRANSFER_WITHDRAWAL_FAILED = "TRANSFER_WITHDRAWAL_FAILED"
+const val TRANSFER_DEPOSIT_SUCCEEDED = "TRANSFER_DEPOSIT_SUCCEEDED"
+const val TRANSFER_DEPOSIT_FAILED = "TRANSFER_DEPOSIT_FAILED"
 const val TRANSFER_TRANSACTION_PROCESSED = "TRANSFER_TRANSACTION_PROCESSED"
 const val TRANSFER_TRANSACTION_ROLLBACKED = "TRANSFER_TRANSACTION_ROLLBACKED"
 
@@ -61,25 +63,44 @@ data class InternalAccountTransferEvent(
     name = INTERNAL_ACCOUNT_TRANSFER,
 )
 
-@DomainEvent(name = TRANSFER_TRANSACTION_ACCEPTED)
-data class TransferTransactionAcceptedEvent(
+@DomainEvent(name = TRANSFER_WITHDRAWAL_SUCCEEDED )
+data class TransferWithdrawalSucceededEvent(
     val accountId: UUID,
     val bankAccountId: UUID,
     val transactionId: UUID,
-    val transferAmount: BigDecimal,
-    val isDeposit: Boolean
+    val transferAmount: BigDecimal
 ) : Event<AccountAggregate>(
-    name = TRANSFER_TRANSACTION_ACCEPTED,
+    name = TRANSFER_WITHDRAWAL_SUCCEEDED,
 )
 
-@DomainEvent(name = TRANSFER_TRANSACTION_DECLINED)
-data class TransferTransactionDeclinedEvent(
+@DomainEvent(name = TRANSFER_WITHDRAWAL_FAILED)
+data class TransferWithdrawalFailedEvent(
     val accountId: UUID,
     val bankAccountId: UUID,
     val transactionId: UUID,
     val reason: String
 ) : Event<AccountAggregate>(
-    name = TRANSFER_TRANSACTION_DECLINED,
+    name = TRANSFER_WITHDRAWAL_FAILED,
+)
+
+@DomainEvent(name = TRANSFER_DEPOSIT_SUCCEEDED)
+data class TransferDepositSuccededEvent(
+    val accountId: UUID,
+    val bankAccountId: UUID,
+    val transactionId: UUID,
+    val transferAmount: BigDecimal
+) : Event<AccountAggregate>(
+    name = TRANSFER_DEPOSIT_SUCCEEDED,
+)
+
+@DomainEvent(name = TRANSFER_DEPOSIT_FAILED)
+data class TransferDepositFailedEvent(
+    val accountId: UUID,
+    val bankAccountId: UUID,
+    val transactionId: UUID,
+    val reason: String
+) : Event<AccountAggregate>(
+    name = TRANSFER_DEPOSIT_FAILED,
 )
 
 @DomainEvent(name = TRANSFER_TRANSACTION_PROCESSED)
