@@ -28,7 +28,7 @@ class BankAccountsSubscriber(
             `when`(TransferWithdrawalSucceededEvent::class){event ->
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("WITHDRAWAL_SUCCEEDED", "withdrawal for transaction is succeeded")
+                    .performSagaStep("TRANSFER_TRANSACTION", "withdrawal for transaction is succeeded")
                     .sagaContext
 
                 transactionEsService.update(
@@ -41,7 +41,7 @@ class BankAccountsSubscriber(
             `when`(TransferWithdrawalFailedEvent::class){event ->
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("WITHDRAWAL_FAILED", "withdrawal for transaction is failed")
+                    .performSagaStep("TRANSFER_TRANSACTION", "withdrawal for transaction is failed")
                     .sagaContext
 
                 transactionEsService.update(
@@ -54,7 +54,7 @@ class BankAccountsSubscriber(
             `when`(TransferDepositSuccededEvent::class){event ->
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("DEPOSIT_SUCCEEDED", "deposit for transaction is succeeded")
+                    .performSagaStep("TRANSFER_TRANSACTION", "deposit for transaction is succeeded")
                     .sagaContext
 
                 transactionEsService.update(
@@ -67,7 +67,7 @@ class BankAccountsSubscriber(
             `when`(TransferDepositFailedEvent::class){event ->
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("DEPOSIT_FAILED", "deposit for transaction is failed")
+                    .performSagaStep("TRANSFER_TRANSACTION", "deposit for transaction is failed")
                     .sagaContext
 
                 transactionEsService.update(

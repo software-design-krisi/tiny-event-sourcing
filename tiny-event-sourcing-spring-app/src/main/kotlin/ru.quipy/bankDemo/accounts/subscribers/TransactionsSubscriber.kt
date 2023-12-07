@@ -27,8 +27,8 @@ class TransactionsSubscriber(
             `when`(TransferTransactionCreatedEvent::class) { event ->
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .launchSaga("TRANSFER_TRANSACTION", "transfer transaction started")
-                    .performSagaStep("TRANSACTION_FROM_AND_TO_CREATED", "creating transaction from and to")
+                    .launchSaga("TRANSFER_TRANSACTION", "creating transaction from and to")
+                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "transfer transaction started")
                     .sagaContext
 
                 logger.info("Got transaction to process: $event")
@@ -55,7 +55,7 @@ class TransactionsSubscriber(
                 logger.info("Got transaction succeeded event: $event")
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("TRANSACTION_SUCCEEDED", "transaction completed successful")
+                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "transaction completed successful")
                     .sagaContext
 
                 val transactionOutcome1 = accountEsService.update(event.sourceAccountId, sagaContext) {
@@ -72,7 +72,7 @@ class TransactionsSubscriber(
                 logger.info("Got transaction failed event: $event")
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("TRANSACTION_FAILED", "transaction failed")
+                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "transaction failed")
                     .sagaContext
 
                 val transactionOutcome1 = accountEsService.update(event.sourceAccountId, sagaContext) {
@@ -89,7 +89,7 @@ class TransactionsSubscriber(
                 logger.info("Got transaction withdrawal failed event: $event")
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("TRANSACTION_FAILED", "transaction failed")
+                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "transaction failed")
                     .sagaContext
 
                 val transactionOutcome1 = accountEsService.update(event.sourceAccountId, sagaContext) {
@@ -106,7 +106,7 @@ class TransactionsSubscriber(
                 logger.info("Got transaction deposit failed event: $event")
                 val sagaContext = sagaManager
                     .withContextGiven(event.sagaContext)
-                    .performSagaStep("TRANSACTION_FAILED", "transaction failed")
+                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "transaction failed")
                     .sagaContext
 
                 val transactionOutcome1 = accountEsService.update(event.sourceAccountId, sagaContext) {
