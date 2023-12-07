@@ -12,35 +12,31 @@ import ru.quipy.core.EventSourcingService
 import ru.quipy.streams.AggregateSubscriptionsManager
 import java.util.*
 import javax.annotation.PostConstruct
+import ru.quipy.saga.SagaManager
 
 @Component
 class BankAccountsSubscriber(
     private val subscriptionsManager: AggregateSubscriptionsManager,
-    private val transactionEsService: EventSourcingService<UUID, TransferTransactionAggregate, TransferTransaction>
+    private val transactionEsService: EventSourcingService<UUID, TransferTransactionAggregate, TransferTransaction>,
+    private val sagaManager: SagaManager
 ) {
     private val logger: Logger = LoggerFactory.getLogger(BankAccountsSubscriber::class.java)
 
     @PostConstruct
     fun init() {
         subscriptionsManager.createSubscriber(AccountAggregate::class, "transactions::bank-accounts-subscriber") {
-            `when`(TransferTransactionAcceptedEvent::class) { event ->
-                transactionEsService.update(event.transactionId) {
-                    it.processParticipantAccept(event.bankAccountId)
-                }
-            }
-            `when`(TransferTransactionDeclinedEvent::class) { event ->
-                transactionEsService.update(event.transactionId) {
-                    it.processParticipantDecline(event.bankAccountId)
-                }
-            }
-            `when`(TransferTransactionProcessedEvent::class) { event ->
-                transactionEsService.update(event.transactionId) {
-                    it.participantCommitted(event.bankAccountId)
-                }
-            }
-            `when`(TransferTransactionRollbackedEvent::class) { event ->
-                transactionEsService.update(event.transactionId) {
-                    it.participantRollbacked(event.bankAccountId)
+            `when`(TransferTransactionAcceptedEvent::class){event ->
+                val sagaContext = sagaManager
+                    .withContextGiven(event.sagaContext)
+                    .launchSaga("PROCESS PARTICIPANT ACCEPT", "process participant accept")
+                    .performSagaStep("INITIATE TRANSFER BETWEEN ACCOUNTS", "initiate transfer between accounts")
+                    .performSagaStep("CREATING TRANSACTION FROM AND TO", "creating transaction from and to")
+                    .sagaContext
+                transactionEsService.update(
+                    aggregateId = event.transactionId,
+                    sagaContext = sagaContext
+                ) {
+                    it.transactionWithdrawalConfirmed(event.bankAccountId)
                 }
             }
         }

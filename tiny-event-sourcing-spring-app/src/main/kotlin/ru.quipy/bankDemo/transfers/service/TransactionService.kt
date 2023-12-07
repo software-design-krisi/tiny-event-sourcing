@@ -8,11 +8,14 @@ import ru.quipy.bankDemo.transfers.projections.BankAccountCacheRepository
 import ru.quipy.core.EventSourcingService
 import java.math.BigDecimal
 import java.util.*
+import ru.quipy.saga.SagaManager
+import ru.quipy.saga.SagaContext
 
 @Service
 class TransactionService(
     private val bankAccountCacheRepository: BankAccountCacheRepository,
-    private val transactionEsService: EventSourcingService<UUID, TransferTransactionAggregate, TransferTransaction>
+    private val transactionEsService: EventSourcingService<UUID, TransferTransactionAggregate, TransferTransaction>,
+    private val sagaManager: SagaManager
 ) {
     fun initiateTransferTransaction(
         sourceBankAccountId: UUID,
@@ -26,6 +29,10 @@ class TransactionService(
         val dstBankAccount = bankAccountCacheRepository.findById(destinationBankAccountId).orElseThrow {
             IllegalArgumentException("Cannot create transaction. There is no destination bank account: $destinationBankAccountId")
         }
+
+        val sagaContext = sagaManager
+            .launchSaga("INITIATE TRANSFER BETWEEN ACCOUNTS", "initiate transfer between accounts")
+            .sagaContext
 
         return transactionEsService.create {
             it.initiateTransferTransaction(
